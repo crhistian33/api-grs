@@ -1,0 +1,65 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\Api\v1\WorkerController as WorkerV1;
+use App\Http\Controllers\Api\v1\CompanyController as CompanyV1;
+use App\Http\Controllers\Api\v1\TypeWorkerController as TypeWorkerV1;
+use App\Http\Controllers\Api\v1\CenterController as CenterV1;
+use App\Http\Controllers\Api\v1\CustomerController as CustomerV1;
+use App\Http\Controllers\Api\v1\UnitController as UnitV1;
+use App\Http\Controllers\Api\v1\ShiftController as ShiftV1;
+use App\Http\Controllers\Api\v1\AssignmentController as AssignmentV1;
+
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+Route::get('/v1/workers/deletes', [WorkerV1::class, 'getDeleted']);
+Route::get('/v1/workers/restore/{worker}', [WorkerV1::class, 'restore']);
+Route::post('/v1/workers/destroyes', [WorkerV1::class, 'destroyAll']);
+Route::post('/v1/workers/restores', [WorkerV1::class, 'restoreAll']);
+Route::get('/v1/workers/unassigneds', [WorkerV1::class, 'getUnassigned']);
+
+Route::get('/v1/type_workers/deletes', [TypeWorkerV1::class, 'getDeleted']);
+Route::get('/v1/type_workers/restore/{type_worker}', [TypeWorkerV1::class, 'restore']);
+Route::post('/v1/type_workers/destroyes', [TypeWorkerV1::class, 'destroyAll']);
+Route::post('/v1/type_workers/restores', [TypeWorkerV1::class, 'restoreAll']);
+
+Route::get('/v1/centers/deletes', [CenterV1::class, 'getDeleted']);
+Route::get('/v1/centers/restore/{center}', [CenterV1::class, 'restore']);
+Route::post('/v1/centers/destroyes', [CenterV1::class, 'destroyAll']);
+Route::post('/v1/centers/restores', [CenterV1::class, 'restoreAll']);
+
+Route::get('/v1/companies/deletes', [CompanyV1::class, 'getDeleted']);
+Route::get('/v1/companies/restore/{company}', [CompanyV1::class, 'restore']);
+Route::post('/v1/companies/destroyes', [CompanyV1::class, 'destroyAll']);
+Route::post('/v1/companies/restores', [CompanyV1::class, 'restoreAll']);
+
+Route::get('/v1/customers/deletes', [CustomerV1::class, 'getDeleted']);
+Route::get('/v1/customers/restore/{customer}', [CustomerV1::class, 'restore']);
+Route::post('/v1/customers/destroyes', [CustomerV1::class, 'destroyAll']);
+Route::post('/v1/customers/restores', [CustomerV1::class, 'restoreAll']);
+
+Route::get('/v1/shifts/deletes', [ShiftV1::class, 'getDeleted']);
+Route::get('/v1/shifts/restore/{shift}', [ShiftV1::class, 'restore']);
+Route::post('/v1/shifts/destroyes', [ShiftV1::class, 'destroyAll']);
+Route::post('/v1/shifts/restores', [ShiftV1::class, 'restoreAll']);
+
+Route::get('/v1/units/deletes', [UnitV1::class, 'getDeleted']);
+Route::get('/v1/units/restore/{unit}', [UnitV1::class, 'restore']);
+Route::post('/v1/units/destroyes', [UnitV1::class, 'destroyAll']);
+Route::post('/v1/units/restores', [UnitV1::class, 'restoreAll']);
+Route::get('/v1/units/unitshifts', [UnitV1::class, 'getUnitShifts']);
+
+Route::apiResources([
+    '/v1/workers' => WorkerV1::class,
+    'v1/companies' => CompanyV1::class,
+    'v1/type_workers' => TypeWorkerV1::class,
+    'v1/centers' => CenterV1::class,
+    'v1/customers' => CustomerV1::class,
+    'v1/units' => UnitV1::class,
+    'v1/shifts' => ShiftV1::class,
+    'v1/assignments' => AssignmentV1::class,
+]);

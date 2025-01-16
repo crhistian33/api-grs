@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('suspensions', function (Blueprint $table) {
+            $table->id();
+            $table->text('descripcion');
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->foreignId('worker_assignment_id')->constrained();
+            $table->foreignId('state_id')->constrained();
+            $table->foreignId('user_id')->constrained();
+            $table->timestamps();
+            $table->softDeletes()->nullable();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('suspensions');
+    }
+};
