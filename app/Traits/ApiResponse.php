@@ -28,6 +28,16 @@ trait ApiResponse
         ], $code);
     }
 
+    protected function verifiedResponse(string $title =null, string $message = null, int $id=null, bool $verified, int $code = Response::HTTP_OK): JsonResponse
+    {
+        return response()->json([
+            'verified' => $verified,
+            'title' => $title,
+            'message' => $message,
+            'id' => $id,
+        ], $code);
+    }
+
     /**
      * Error Response
      *

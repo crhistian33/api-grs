@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('worker_assignments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('worker_id')->constrained();
-            $table->foreignId('assignment_id')->constrained();
+            $table->foreignId('assignment_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

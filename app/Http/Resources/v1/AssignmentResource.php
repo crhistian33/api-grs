@@ -15,6 +15,7 @@ class AssignmentResource extends JsonResource
             'shift' => new ShiftResource($this->unitShift->shift),
             'start_date' => $this->start_date,
             'state' => $this->state,
+            'unit_shift_id' => $this->unitShift->id,
             'workers_count' => count(WorkerResource::collection($this->workers)),
             'workers' => WorkerResource::collection($this->workers),
             'user_id' => $this->user->id,

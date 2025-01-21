@@ -28,4 +28,25 @@ class Company extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($company) {
+            foreach ($company->customers as $customer) {
+                if ($customer->hasAssignments()) {
+                    throw new \Exception("No se puede remover la empresa porque hay asignaciones activas.");
+                }
+            }
+        });
+
+        static::forceDeleting(function ($company) {
+            foreach ($company->customers as $customer) {
+                if ($customer->hasAssignments()) {
+                    throw new \Exception("No se puede eliminar permanentemente la empresa porque hay asignaciones activas.");
+                }
+            }
+        });
+    }
 }

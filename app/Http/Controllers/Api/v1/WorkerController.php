@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\WorkerRequest;
 use App\Http\Resources\v1\WorkerCollection;
 use App\Http\Resources\v1\WorkerResource;
+use App\Models\Assignment;
 use App\Models\Worker;
 use App\Traits\ApiResponse;
 use Exception;
@@ -70,6 +71,9 @@ class WorkerController extends Controller
         try {
             $delete = filter_var(request()->query('delete'), FILTER_VALIDATE_BOOL);
             $worker = Worker::withTrashed()->findOrFail($id);
+            if($worker->assignments()->exists()) {
+                return $this->errorResponse('No se puede eliminar el trabajador porque está asignado a una unidad turno', 422);
+            }
             if(!$delete) {
                 $worker->delete();
                 return $this->successResponse(null, config('messages.success.remove_title'), 'El trabajador '.config('messages.success.remove_message'));
@@ -131,10 +135,32 @@ class WorkerController extends Controller
         }
     }
 
+    public function getAllMain() {
+        try {
+            $this->workers = Worker::type('Titular')->get();
+            return new WorkerCollection($this->workers);
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
     public function getUnassigned() {
         try {
             $this->workers = Worker::type('Titular')->unassigned()->get();
             return new WorkerCollection($this->workers);
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
+    public function getWorkersEdit(Assignment $assignment) {
+        try {
+            $workers = Worker::type('Titular')->unassigned()
+                ->orWhereHas('assignments', function ($q) use ($assignment) {
+                    $q->where('assignments.id', $assignment->id);
+                })
+                ->get();
+            return new WorkerCollection($workers);
         } catch (Exception $e) {
             return $this->handleException($e);
         }

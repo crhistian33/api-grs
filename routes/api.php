@@ -11,16 +11,24 @@ use App\Http\Controllers\Api\v1\CustomerController as CustomerV1;
 use App\Http\Controllers\Api\v1\UnitController as UnitV1;
 use App\Http\Controllers\Api\v1\ShiftController as ShiftV1;
 use App\Http\Controllers\Api\v1\AssignmentController as AssignmentV1;
+use App\Http\Controllers\Api\v1\CountController as CountV1;
+use App\Http\Controllers\Api\v1\UnitShiftController as UnitShiftV1;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('/v1/assignments/verified/{unit_shift}', [AssignmentV1::class, 'verifiedUnit']);
+Route::get('/v1/assignments/deletes', [AssignmentV1::class, 'getDeleted']);
+Route::post('/v1/assignments/destroyes', [AssignmentV1::class, 'destroyAll']);
 
 Route::get('/v1/workers/deletes', [WorkerV1::class, 'getDeleted']);
 Route::get('/v1/workers/restore/{worker}', [WorkerV1::class, 'restore']);
 Route::post('/v1/workers/destroyes', [WorkerV1::class, 'destroyAll']);
 Route::post('/v1/workers/restores', [WorkerV1::class, 'restoreAll']);
 Route::get('/v1/workers/unassigneds', [WorkerV1::class, 'getUnassigned']);
+Route::get('/v1/workers/titulars', [WorkerV1::class, 'getAllMain']);
+Route::get('/v1/workers/assigns/{assignment}', [WorkerV1::class, 'getWorkersEdit']);
 
 Route::get('/v1/type_workers/deletes', [TypeWorkerV1::class, 'getDeleted']);
 Route::get('/v1/type_workers/restore/{type_worker}', [TypeWorkerV1::class, 'restore']);
@@ -53,6 +61,10 @@ Route::post('/v1/units/destroyes', [UnitV1::class, 'destroyAll']);
 Route::post('/v1/units/restores', [UnitV1::class, 'restoreAll']);
 Route::get('/v1/units/unitshifts', [UnitV1::class, 'getUnitShifts']);
 
+Route::get('/v1/unitshifts/verified/{unitshift}/{assignment?}', [UnitShiftV1::class, 'verifiedAssignment']);
+
+Route::get('/v1/counts', [CountV1::class, 'getcounts']);
+
 Route::apiResources([
     '/v1/workers' => WorkerV1::class,
     'v1/companies' => CompanyV1::class,
@@ -62,4 +74,5 @@ Route::apiResources([
     'v1/units' => UnitV1::class,
     'v1/shifts' => ShiftV1::class,
     'v1/assignments' => AssignmentV1::class,
+    'v1/unitshifts' => UnitShiftV1::class,
 ]);

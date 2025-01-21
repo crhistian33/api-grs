@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('name', 100)->unique();
             $table->string('ruc', 11)->nullable();
             $table->string('phone', 11)->nullable();
-            $table->foreignId('company_id')->constrained();
+            $table->foreignId('company_id')->constrained()->onDelete(('cascade'));
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
             $table->softDeletes()->nullable();

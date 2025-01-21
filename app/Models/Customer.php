@@ -32,6 +32,11 @@ class Customer extends Model
         return $this->hasMany(Unit::class);
     }
 
+    public function hasAssignments(): bool
+    {
+        return $this->units()->whereHas('unitShifts.assignments')->exists();
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

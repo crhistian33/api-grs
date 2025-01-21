@@ -16,6 +16,7 @@ class WorkerCollection extends ResourceCollection
     {
         return [
             'data' => $this->collection,
+            'total' => $this->collection->count(),
         ];
     }
 

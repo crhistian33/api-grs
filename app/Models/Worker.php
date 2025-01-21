@@ -29,7 +29,7 @@ class Worker extends Model
     }
 
     public function scopeUnassigned($query) {
-        return $query->whereDoesntHave('workerAssignments');
+        return $query->whereDoesntHave('assignments');
     }
 
 
@@ -40,9 +40,7 @@ class Worker extends Model
 
     public function assignments(): BelongsToMany
     {
-        return $this->belongsToMany(Assignment::class, 'worker_assignments')
-            ->withPivot(['status'])
-            ->withTimestamps();
+        return $this->belongsToMany(Assignment::class, 'worker_assignments');
     }
 
     public function user(): BelongsTo

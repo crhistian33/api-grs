@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('name', 100)->unique();
             $table->string('location', 200)->nullable();
             $table->foreignId('center_id')->constrained();
-            $table->foreignId('customer_id')->constrained();
+            $table->foreignId('customer_id')->constrained()->onDelete(('cascade'));
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
             $table->softDeletes()->nullable();

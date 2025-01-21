@@ -3,57 +3,112 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AssignmentRequest;
 use App\Http\Resources\v1\AssignmentCollection;
+use App\Http\Resources\v1\AssignmentResource;
 use App\Models\Assignment;
-use Illuminate\Http\Request;
+use App\Models\UnitShift;
 use App\Traits\ApiResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Http\Request;
 use Exception;
 
 class AssignmentController extends Controller
 {
     use ApiResponse;
 
-    protected $assigments;
+    protected $assignments;
 
     public function index()
     {
         try {
-            $this->assigments = Assignment::all();
-            return new AssignmentCollection($this->assigments);
+            $this->assignments = Assignment::orderBy('created_at', 'desc')->get();
+            return new AssignmentCollection($this->assignments);
         } catch (Exception $e) {
             return $this->handleException($e);
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+    public function getDeleted() {
+        try {
+            $this->assignments = Assignment::onlyTrashed()->orderBy('created_at', 'desc')->get();
+            return new AssignmentCollection($this->assignments);
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function store(AssignmentRequest $request)
     {
-        //
+        try {
+            $validatedData = $request->validated();
+            if (!$request->has('start_date')) {
+                $validatedData['start_date'] = now()->toDateString();
+            }
+            $assignment = Assignment::create($validatedData);
+            $workerIds = collect($request->workers)->pluck('id')->toArray();
+            $assignment->workers()->attach($workerIds);
+            return $this->createdResponse($assignment, config('messages.success.create_title'), 'La asignación '.config('messages.success.create_message'));
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function show(Assignment $assignment)
     {
-        //
+        try {
+            return new AssignmentResource($assignment);
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    public function update(AssignmentRequest $request, Assignment $assignment)
+    {
+        try {
+            $assignment->update($request->getAllFields());
+            $workerIds = collect($request->workers)->pluck('id')->toArray();
+            $assignment->workers()->sync($workerIds);
+            return $this->successResponse($assignment, config('messages.success.update_title'), 'La asignación '.config('messages.success.update_message'));
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
     public function destroy(string $id)
     {
-        //
+        try {
+            $delete = filter_var(request()->query('delete'), FILTER_VALIDATE_BOOL);
+            $assignment = Assignment::withTrashed()->findOrFail($id);
+
+            if(!$delete) {
+                $assignment->delete();
+                return $this->successResponse(null, config('messages.success.remove_title'), 'La asignación '.config('messages.success.remove_message'));
+            } else {
+                $assignment->forceDelete();
+                return $this->successResponse(null, config('messages.success.delete_title'), 'El trabajador '.config('messages.success.delete_message'));
+            }
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
+    public function destroyAll(Request $request)
+    {
+        try {
+            $this->assignments = new AssignmentCollection($request->resources);
+            $assignIds = $this->assignments->getIdsAttribute();
+
+            $existings = Assignment::withTrashed()->whereIn('id', $assignIds)->count();
+
+            if ($existings !== count($assignIds)) {
+                return $this->errorResponse('Uno de los registros no existe.', 404);
+            }
+
+            Assignment::whereIn('id', $assignIds)->forceDelete();
+            return $this->successResponse(null, config('messages.success.deleteall_title'), 'Las asignaciones '.config('messages.success.deleteall_message'));
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
     }
 }

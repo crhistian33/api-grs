@@ -18,4 +18,9 @@ class AssignmentCollection extends ResourceCollection
             'data' => $this->collection,
         ];
     }
+
+    public function getIdsAttribute()
+    {
+        return $this->pluck('id')->toArray();
+    }
 }
