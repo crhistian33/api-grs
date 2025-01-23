@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\WorkerRequest;
+use App\Http\Resources\v1\AssignmentResource;
+use App\Http\Resources\v1\ShiftResource;
+use App\Http\Resources\v1\UnitResource;
+use App\Http\Resources\v1\UnitShiftResource;
 use App\Http\Resources\v1\WorkerCollection;
 use App\Http\Resources\v1\WorkerResource;
 use App\Models\Assignment;
@@ -36,6 +40,31 @@ class WorkerController extends Controller
             return $this->handleException($e);
         }
     }
+
+    // public function getWorkersReassigns() {
+    //     try {
+    //         $workers = Worker::whereHas('assignments', function ($query) {
+    //             $query->where('state', true);
+    //         })
+    //         ->get()
+    //         ->map(function ($worker) {
+    //             return [
+    //                 'id' => $worker -> id,
+    //                 'name' => $worker->name,
+    //                 'dni' => $worker->dni,
+    //                 'birth_date' => $worker->birth_date,
+    //                 'assignments' => AssignmentResource::collection($worker->assignments)
+    //             ];
+    //         });
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $workers
+    //         ]);
+    //     } catch (Exception $e) {
+    //         return $this->handleException($e);
+    //     }
+    // }
 
     public function store(WorkerRequest $request)
     {

@@ -16,7 +16,9 @@ class UnitShiftResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->unit->name. ' - '. $this->shift->name,
+            //'name' => $this->unit->name. ' - '. $this->shift->name,
+            'unit' => new UnitResource($this->unit),
+            'shift' => new ShiftResource($this->shift),
         ];
     }
 }

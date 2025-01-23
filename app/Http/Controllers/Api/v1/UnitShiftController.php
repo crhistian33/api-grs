@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\v1\UnitShiftCollection;
 use App\Models\Assignment;
 use App\Models\UnitShift;
 use App\Traits\ApiResponse;
@@ -14,6 +15,56 @@ class UnitShiftController extends Controller
     use ApiResponse;
 
     protected $unitshifts;
+
+    public function index() {
+        $this->unitshifts = UnitShift::whereHas('unit', function($query) {
+                $query->whereNull('deleted_at');
+            })
+            ->whereHas('shift', function ($query) {
+                $query->whereNull('deleted_at');
+            })
+            ->get()
+            ->map(function ($unitshift) {
+                return [
+                    'id' => $unitshift->id,
+                    'name' => $unitshift->unit->name.' - '.$unitshift->shift->name,
+                ];
+            });
+
+        return response()->json([
+            'data' => $this->unitshifts
+        ]);
+            //return new UnitShiftCollection($this->unitshifts);
+    }
+
+    public function getWithAssigns() {
+        $unitshifts = UnitShift::whereHas('assignments', function($query) {
+            return $query->where('state', true);
+        })
+        ->get()
+        ->map(function($unitshift) {
+            return [
+                'id' => $unitshift->id,
+                'name' => "{$unitshift->unit->name} - {$unitshift->shift->name}",
+                'assignments' =>$unitshift->assignments->map(function($assignment) {
+                    return [
+                        'id' => $assignment->id
+                    ];
+                })
+                // 'unit_shift_id' => $assignment->unit_shift_id,
+                // 'name' => "{$assignment->unitShift->unit->name} - {$assignment->unitShift->shift->name}",
+                // ->map(function ($unitshift) {
+                //     return [
+                //         'id' => $unitshift->id
+                //     ];
+                // }),
+            ];
+        });
+
+        return response()->json([
+            'data' => $unitshifts
+        ]);
+    }
 
     public function verifiedAssignment(UnitShift $unitshift, Assignment $assignment = null) {
         if(is_null($assignment)) {
@@ -38,4 +89,6 @@ class UnitShiftController extends Controller
             'verified' => false
         ], Response::HTTP_OK);
     }
+
+
 }

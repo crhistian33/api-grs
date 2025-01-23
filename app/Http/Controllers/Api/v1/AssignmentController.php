@@ -38,6 +38,36 @@ class AssignmentController extends Controller
         }
     }
 
+    public function getReassignment() {
+        try {
+            $this->assignments = Assignment::orderBy('created_at', 'desc')->with('workers')->get();
+            return response()->json($this->assignments); //new AssignmentCollection($this->assignments);
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
+    public function getUnitShifts() {
+        $unitshifts = Assignment::where('state', true)
+            ->with('unitShift.unit', 'unitShift.shift')
+            ->whereHas('unitShift')
+            ->get()
+            ->map(function($assignment) {
+                return [
+                    'assign_id' => $assignment->id,
+                    'unit_shift_id' => $assignment->unit_shift_id,
+                    'name' => "{$assignment->unitShift->unit->name} - {$assignment->unitShift->shift->name}",
+                    // ->map(function ($unitshift) {
+                    //     return [
+                    //         'id' => $unitshift->id
+                    //     ];
+                    // }),
+                ];
+            });
+
+        return response()->json($unitshifts);
+    }
+
     public function store(AssignmentRequest $request)
     {
         try {
@@ -67,8 +97,10 @@ class AssignmentController extends Controller
     {
         try {
             $assignment->update($request->getAllFields());
-            $workerIds = collect($request->workers)->pluck('id')->toArray();
-            $assignment->workers()->sync($workerIds);
+            if($request->has('workers')) {
+                $workerIds = collect($request->workers)->pluck('id')->toArray();
+                $assignment->workers()->sync($workerIds);
+            }
             return $this->successResponse($assignment, config('messages.success.update_title'), 'La asignación '.config('messages.success.update_message'));
         } catch (Exception $e) {
             return $this->handleException($e);
