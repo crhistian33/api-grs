@@ -92,6 +92,7 @@ trait ApiResponse
 
             return $this->errorResponse(
                 'Error en la base de datos.',
+                //$e->getMessage(),
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }

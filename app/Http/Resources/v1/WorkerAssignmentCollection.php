@@ -16,4 +16,9 @@ class WorkerAssignmentCollection extends ResourceCollection
     {
         return parent::toArray($request);
     }
+
+    public function getIdsAttribute()
+    {
+        return $this->pluck('id')->toArray();
+    }
 }

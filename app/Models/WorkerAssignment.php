@@ -11,6 +11,11 @@ class WorkerAssignment extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'worker_id',
+        'assignment_id',
+    ];
+
     public function worker(): BelongsTo
     {
         return $this->belongsTo(Worker::class);

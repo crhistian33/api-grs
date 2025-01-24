@@ -20,6 +20,8 @@ return [
         'restore_message' => 'se restauró exitosamente.',
         'restoreall_title' => 'Registros restaurados',
         'restoreall_message' => 'se restauraron exitosamente.',
+        'reassign_title' => 'Reasignación exitosa',
+        'reassign_message' => 'Se reasignó el trabajador exitosamente.',
     ],
     'error' => [
         'create' => 'Error al crear el registro.',

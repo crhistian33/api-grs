@@ -29,10 +29,10 @@ class UnitController extends Controller
         }
     }
 
-    public function getUnitShifts() {
-        $unitshitfs = UnitShift::all();
-        return new UnitShiftCollection($unitshitfs);
-    }
+    // public function getUnitShifts() {
+    //     $unitshitfs = UnitShift::all();
+    //     return new UnitShiftCollection($unitshitfs);
+    // }
 
     public function getDeleted() {
         try {
@@ -47,6 +47,10 @@ class UnitController extends Controller
     {
         try {
             $unit = Unit::create($request->validated());
+            if($request->has('shifts')) {
+                $shiftIds = collect($request->shifts)->pluck('id')->toArray();
+                $unit->shifts()->attach($shiftIds);
+            }
             return $this->createdResponse($unit, config('messages.success.create_title'), 'La unidad '.config('messages.success.create_message'));
         } catch (Exception $e) {
             return $this->handleException($e);
@@ -66,6 +70,10 @@ class UnitController extends Controller
     {
         try {
             $unit->update($request->validated());
+            if($request->has('shifts')) {
+                $shiftIds = collect($request->shifts)->pluck('id')->toArray();
+                $unit->shifts()->sync($shiftIds);
+            }
             return $this->successResponse($unit, config('messages.success.update_title'), 'La unidad '.config('messages.success.update_message'));
         } catch (Exception $e) {
             return $this->handleException($e);

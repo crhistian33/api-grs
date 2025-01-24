@@ -27,6 +27,7 @@ class UnitRequest extends FormRequest
             ],
             'center_id' => 'required',
             'customer_id' => 'required',
+            'min_assign' => 'required',
             'user_id' => 'required',
         ];
     }
@@ -56,6 +57,7 @@ class UnitRequest extends FormRequest
             'name.unique' => 'El nombre ingresado ya existe',
             'center_id.required' => 'El centro de costo es requerido',
             'customer_id.required' => 'El cliente es requerido',
+            'min_assign.required' => 'El número de trabajadores a asignar es requerido',
             'user_id.required' => 'El usuario es requerido',
         ];
     }

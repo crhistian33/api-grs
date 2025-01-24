@@ -17,17 +17,14 @@ class UnitShiftController extends Controller
     protected $unitshifts;
 
     public function index() {
-        $this->unitshifts = UnitShift::whereHas('unit', function($query) {
-                $query->whereNull('deleted_at');
-            })
-            ->whereHas('shift', function ($query) {
-                $query->whereNull('deleted_at');
-            })
+        $this->unitshifts = UnitShift::whereHas('unit')
+            ->whereHas('shift')
             ->get()
             ->map(function ($unitshift) {
                 return [
                     'id' => $unitshift->id,
                     'name' => $unitshift->unit->name.' - '.$unitshift->shift->name,
+                    'assignments' => $unitshift->assignments,
                 ];
             });
 

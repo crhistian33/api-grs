@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('unit_id')->constrained()->onDelete(('cascade'));
             $table->foreignId('shift_id')->constrained();
-            $table->foreignId('user_id')->constrained();
             $table->timestamps();
             $table->softDeletes()->nullable();
         });

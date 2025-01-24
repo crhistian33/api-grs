@@ -19,6 +19,7 @@ class Unit extends Model
         'name',
         'center_id',
         'customer_id',
+        'min_assign',
         'user_id',
     ];
 

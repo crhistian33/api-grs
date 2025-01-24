@@ -18,7 +18,6 @@ class WorkerAssignmentRequest extends FormRequest
         return [
             'worker_id' => 'required',
             'assignment_id' => 'required',
-            'current_assignment_id' => 'required',
         ];
     }
 
@@ -43,7 +42,6 @@ class WorkerAssignmentRequest extends FormRequest
         return [
             'worker_id.required' => 'El código del trabajdor es requerido',
             'assignment_id.required' => 'El código de la asignación es requerido',
-            'current_assignment_id.required' => 'El código de la asignación actual es requerido',
         ];
     }
 }

@@ -76,8 +76,10 @@ class AssignmentController extends Controller
                 $validatedData['start_date'] = now()->toDateString();
             }
             $assignment = Assignment::create($validatedData);
-            $workerIds = collect($request->workers)->pluck('id')->toArray();
-            $assignment->workers()->attach($workerIds);
+            if($request->has('workers')) {
+                $workerIds = collect($request->workers)->pluck('id')->toArray();
+                $assignment->workers()->attach($workerIds, ['created_at' => now()]);
+            }
             return $this->createdResponse($assignment, config('messages.success.create_title'), 'La asignación '.config('messages.success.create_message'));
         } catch (Exception $e) {
             return $this->handleException($e);

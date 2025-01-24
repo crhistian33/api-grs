@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('suspensions', function (Blueprint $table) {
             $table->id();
-            $table->text('descripcion');
+            $table->text('description');
             $table->date('start_date');
             $table->date('end_date');
             $table->foreignId('worker_assignment_id')->constrained();

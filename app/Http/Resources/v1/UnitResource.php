@@ -22,6 +22,7 @@ class UnitResource extends JsonResource
             'center' => new CenterResource($this->center),
             'customer_id' => $this->customer->id,
             'customer' => new CustomerResource($this->customer),
+            'min_assign' => $this->min_assign,
             'shifts' => ShiftResource::collection($this->shifts),
             'user_id' => $this->user->id,
         ];
