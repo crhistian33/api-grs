@@ -16,9 +16,10 @@ return new class extends Migration
             $table->foreignId('worker_assignment_id')->constrained();
             $table->foreignId('assist_id')->constrained();
             $table->foreignId('state_id')->constrained();
-            $table->bigInteger('replace_worker')->nullable();
-            $table->bigInteger('replace_state')->nullable();
-            $table->boolean('isPay')->default(false);
+            $table->boolean('is_assist')->default(false);
+            $table->bigInteger('replace_worker_id')->nullable()->constrained('workers');
+            $table->bigInteger('replace_state_id')->nullable()->constrained('states');
+            $table->boolean('is_pay')->default(false);
             $table->decimal('pay_mount', 9, 2)->nullable();
             $table->timestamps();
         });
