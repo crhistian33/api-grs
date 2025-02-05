@@ -10,8 +10,14 @@ return new class extends Migration
     {
         Schema::create('assists', function (Blueprint $table) {
             $table->id();
-            $table->date('assist_date');
-            $table->foreignId('unit_shift_id')->constrained();
+            $table->date('start_date');
+            $table->foreignId('worker_assignment_id')->constrained();
+            $table->foreignId('state_id')->constrained();
+            $table->boolean('is_assist')->default(false);
+            $table->bigInteger('replace_worker_id')->nullable()->constrained('workers');
+            $table->bigInteger('replace_state_id')->nullable()->constrained('states');
+            $table->boolean('is_pay')->default(false);
+            $table->decimal('pay_mount', 9, 2)->nullable();
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
             $table->softDeletes()->nullable();

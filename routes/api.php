@@ -15,10 +15,16 @@ use App\Http\Controllers\Api\v1\WorkerAssignController as WorkerAssignV1;
 use App\Http\Controllers\Api\v1\CountController as CountV1;
 use App\Http\Controllers\Api\v1\UnitShiftController as UnitShiftV1;
 use App\Http\Controllers\Api\v1\AssistController as AssistV1;
+use App\Http\Controllers\Api\v1\AuthController as AuthV1;
+use App\Http\Controllers\Api\v1\UserController as UserV1;
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
+
+Route::post('v1/auth/login', [AuthV1::class, 'login']);
+Route::post('v1/auth/refresh', [AuthV1::class, 'refreshToken']);
+Route::get('v1/auth/logout', [AuthV1::class, 'logout']);
 
 Route::get('/v1/assignments/verified/{unit_shift}', [AssignmentV1::class, 'verifiedUnit']);
 Route::get('/v1/assignments/deletes', [AssignmentV1::class, 'getDeleted']);
@@ -72,6 +78,8 @@ Route::get('/v1/unitshifts/verified/{unitshift}/{assignment?}', [UnitShiftV1::cl
 Route::post('/v1/worker_assignments/destroyes', [WorkerAssignV1::class, 'destroyAll']);
 
 Route::get('/v1/counts', [CountV1::class, 'getcounts']);
+
+Route::get('/v1/users/profile', [UserV1::class, 'getProfile']);
 
 Route::apiResources([
     '/v1/workers' => WorkerV1::class,

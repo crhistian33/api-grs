@@ -22,6 +22,11 @@ class WorkerController extends Controller
 
     protected $workers;
 
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
+
     public function index()
     {
         try {
