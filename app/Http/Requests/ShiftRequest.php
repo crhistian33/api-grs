@@ -11,7 +11,7 @@ class ShiftRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return false;
     }
 
     public function rules(): array
@@ -25,7 +25,11 @@ class ShiftRequest extends FormRequest
                 'required',
                 Rule::unique('shifts')->ignore($this->route('shift')),
             ],
-            'user_id' => 'required',
+            'created_by' => [
+                Rule::when($this->isMethod('POST'), [
+                    'required',
+                ]),
+            ]
         ];
     }
 
@@ -52,7 +56,7 @@ class ShiftRequest extends FormRequest
             'name.unique' => 'El nombre ingresado ya existe',
             'shortName.required' => 'El nombre corto es requerido',
             'shortName.unique' => 'El nombre corto ingresado ya existe',
-            'user_id.required' => 'El usuario es requerido',
+            'created_by.required' => 'El usuario es requerido',
         ];
     }
 }

@@ -26,8 +26,22 @@ class CenterRequest extends FormRequest
                 Rule::unique('centers')->ignore($this->route('center')),
             ],
             'mount' => 'required',
-            'user_id' => 'required',
+            'created_by' => [
+                Rule::when($this->isMethod('POST'), [
+                    'required',
+                ]),
+            ]
         ];
+    }
+
+    public function getAllFields()
+    {
+        return array_filter(
+            $this->all(),
+            function ($value) {
+                return $value !== null && $value !== '';
+            }
+        );
     }
 
     public function failedValidation(Validator $validator)
@@ -54,7 +68,7 @@ class CenterRequest extends FormRequest
             'name.required' => 'El nombre es requerido',
             'name.unique' => 'El nombre ingresado ya existe',
             'mount.required' => 'El monto es requerido',
-            'user_id.required' => 'El usuario es requerido',
+            'created_by.required' => 'El usuario es requerido',
         ];
     }
 }

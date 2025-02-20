@@ -26,11 +26,4 @@ class UnitShift extends Model
     {
         return $this->hasMany(Assignment::class);
     }
-
-    // public function workers(): BelongsToMany
-    // {
-    //     return $this->belongsToMany(Worker::class, 'assignments')
-    //         ->withPivot('start_date', 'end_date')
-    //         ->withTimestamps();
-    // }
 }

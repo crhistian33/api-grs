@@ -19,7 +19,10 @@ class CenterResource extends JsonResource
             'code' => $this->code,
             'name' => $this->name,
             'mount' => $this->mount,
-            'user_id' => $this->user->id,
+            'Created_by' => $this->createdBy,
+            'updated_by' => $this->updatedBy,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at
         ];
     }
 }

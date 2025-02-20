@@ -15,7 +15,8 @@ return new class extends Migration
             $table->date('birth_date');
             $table->foreignId('company_id')->constrained();
             $table->foreignId('type_worker_id')->constrained();
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();
             $table->softDeletes()->nullable();
         });

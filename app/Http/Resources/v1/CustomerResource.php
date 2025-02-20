@@ -20,9 +20,11 @@ class CustomerResource extends JsonResource
             'name' => $this->name,
             'ruc' => $this->ruc,
             'phone' => $this->phone,
-            'company_id' => $this->company->id,
             'company' => new CompanyResource($this->company),
-            'user_id' => $this->user->id,
+            'Created_by' => $this->createdBy,
+            'updated_by' => $this->updatedBy,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at
         ];
     }
 }

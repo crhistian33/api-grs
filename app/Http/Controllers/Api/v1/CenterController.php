@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Exceptions\HandleException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CenterRequest;
 use App\Http\Resources\v1\CenterCollection;
@@ -10,26 +11,40 @@ use App\Models\Center;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponse;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class CenterController extends Controller
 {
     use ApiResponse;
 
     protected $centers;
+    protected $center;
+    protected array $relations = ['createdBy', 'updatedBy'];
+    protected array $fields = ['id', 'code', 'name', 'mount', 'created_by', 'updated_by'];
+
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
 
     public function index()
     {
         try {
-            $this->centers = Center::all();
-        return new CenterCollection($this->centers);
+            $this->centers = Center::with($this->relations)
+                ->select($this->fields)
+                ->get();
+            return new CenterCollection($this->centers);
         } catch (Exception $e) {
             return $this->handleException($e);
         }
     }
 
-    public function getDeleted() {
+    public function getTrashed() {
         try {
-            $this->centers = Center::onlyTrashed()->get();
+            $this->centers = Center::with($this->relations)
+                ->select($this->fields)
+                ->onlyTrashed()
+                ->get();
             return new CenterCollection($this->centers);
         } catch (Exception $e) {
             return $this->handleException($e);
@@ -39,8 +54,9 @@ class CenterController extends Controller
     public function store(CenterRequest $request)
     {
         try {
-            $center = Center::create($request->validated());
-            return $this->createdResponse($center, config('messages.success.create_title'), 'El centro de costo '.config('messages.success.create_message'));
+            $center = Center::create($request->getAllFields());
+            $this->center = new CenterResource($center);
+            return $this->createdResponse($this->center, config('messages.success.create_title'), 'El centro de costo '.config('messages.success.create_message'));
         } catch (Exception $e) {
             return $this->handleException($e);
         }
@@ -58,8 +74,9 @@ class CenterController extends Controller
     public function update(CenterRequest $request, Center $center)
     {
         try {
-            $center->update($request->validated());
-            return $this->successResponse($center, config('messages.success.update_title'), 'El centro de costo '.config('messages.success.update_message'));
+            $center->update($request->getAllFields());
+            $this->center = new CenterResource($center);
+            return $this->successResponse($this->center, config('messages.success.update_title'), 'El centro de costo '.config('messages.success.update_message'));
         } catch (Exception $e) {
             return $this->handleException($e);
         }
@@ -68,16 +85,46 @@ class CenterController extends Controller
     public function destroy($id)
     {
         try {
-            $delete = filter_var(request()->query('delete'), FILTER_VALIDATE_BOOL);
+            $force = filter_var(request()->query('delete'), FILTER_VALIDATE_BOOL);
             $center = Center::withTrashed()->findOrFail($id);
-            if(!$delete) {
-                $center->delete();
-                return $this->successResponse(null, config('messages.success.remove_title'), 'El centro de costo '.config('messages.success.remove_message'));
-            } else {
-                $center->forceDelete();
-                return $this->successResponse(null, config('messages.success.delete_title'), 'El centro de costo '.config('messages.success.delete_message'));
-            }
-        } catch (Exception $e) {
+
+            $center->safeDelete($force);
+            $messageKey = $force ? 'delete' : 'remove';
+
+            return $this->successResponse(null, config("messages.success.{$messageKey}_title"), 'El centro de costo '.config("messages.success.{$messageKey}_message"));
+        }
+        catch (HandleException $e) {
+            return $this->errorResponse($e->getMessage(), 422);
+        }
+        catch (Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
+    public function destroyAll(Request $request)
+    {
+        try {
+            $centers = new CenterCollection($request->resources);
+            $centerIds = $centers->getIdsAttribute();
+            $force = filter_var($request->del, FILTER_VALIDATE_BOOL);
+            $active = filter_var($request->active, FILTER_VALIDATE_BOOL);
+
+            $result = Center::destroyAll($centerIds, $force);
+
+            $data = $active
+                ? Center::with($this->relations)->select($this->fields)->get()
+                : Center::with($this->relations)->select($this->fields)->onlyTrashed()->get();
+
+            return $this->successResponse(
+                $data,
+                $result['title'],
+                $result['message']
+            );
+        }
+        catch (HandleException $e) {
+            return $this->errorResponse($e->getMessage(), 422);
+        }
+        catch (Exception $e) {
             return $this->handleException($e);
         }
     }
@@ -93,39 +140,19 @@ class CenterController extends Controller
         }
     }
 
-    public function destroyAll(Request $request)
-    {
-        try {
-            $centers = new CenterCollection($request->resources);
-            $centerIds = $centers->getIdsAttribute();
-            $delete = filter_var($request->del, FILTER_VALIDATE_BOOL);
-
-            $existingCenter = Center::withTrashed()->whereIn('id', $centerIds)->count();
-
-            if ($existingCenter !== count($centerIds)) {
-                return $this->errorResponse('Uno de los registros no existe.'.$existingCenter, 404);
-            }
-
-            if(!$delete) {
-                Center::whereIn('id', $centerIds)->delete();
-                return $this->successResponse(null, config('messages.success.removeall_title'), 'Los centros de costo '.config('messages.success.removeall_message'));
-            }
-            else {
-                Center::whereIn('id', $centerIds)->forceDelete();
-                return $this->successResponse(null, config('messages.success.deleteall_title'), 'Los centros de costo '.config('messages.success.deleteall_message'));
-            }
-        } catch (Exception $e) {
-            return $this->handleException($e);
-        }
-    }
 
     public function restoreAll(Request $request)
     {
         try {
-            $centers = new CenterCollection($request->resources);
-            $centerIds = $centers->getIdsAttribute();
-            Center::whereIn('id', $centerIds)->restore();
-            return $this->successResponse(null, config('messages.success.restoreall_title'), 'Los centros de costo '.config('messages.success.restoreall_message'));
+            return DB::transaction(function() use ($request) {
+                $centers = new CenterCollection($request->resources);
+                $centerIds = $centers->getIdsAttribute();
+                Center::whereIn('id', $centerIds)->restore();
+
+                $this->centers = Center::whereIn('id', $centerIds)->get();
+
+                return $this->successResponse($this->centers, config('messages.success.restoreall_title'), 'Los centros de costo '.config('messages.success.restoreall_message'));
+            }, 5);
         } catch (Exception $e) {
             return $this->handleException($e);
         }

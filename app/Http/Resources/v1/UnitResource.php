@@ -24,7 +24,10 @@ class UnitResource extends JsonResource
             'customer' => new CustomerResource($this->customer),
             'min_assign' => $this->min_assign,
             'shifts' => ShiftResource::collection($this->shifts),
-            'user_id' => $this->user->id,
+            'Created_by' => $this->createdBy,
+            'updated_by' => $this->updatedBy,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at
         ];
     }
 }

@@ -11,7 +11,8 @@ return new class extends Migration
         Schema::create('type_workers', function (Blueprint $table) {
             $table->id();
             $table->string('name', 20)->unique();
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();
             $table->softDeletes()->nullable();
         });

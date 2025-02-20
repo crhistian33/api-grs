@@ -15,7 +15,8 @@ return new class extends Migration
             $table->string('ruc', 11)->nullable();
             $table->string('phone', 11)->nullable();
             $table->foreignId('company_id')->constrained()->onDelete(('cascade'));
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();
             $table->softDeletes()->nullable();
         });

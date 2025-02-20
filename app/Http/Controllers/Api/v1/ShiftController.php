@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Exceptions\HandleException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ShiftRequest;
 use App\Http\Resources\v1\ShiftCollection;
@@ -10,26 +11,42 @@ use App\Models\Shift;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponse;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class ShiftController extends Controller
 {
     use ApiResponse;
 
     protected $shifts;
+    protected $shift;
+    protected array $relations = ['createdBy', 'updatedBy'];
+    protected array $fields = ['id', 'name', 'shortName', 'created_by', 'updated_by'];
+
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
 
     public function index()
     {
         try {
-            $this->shifts = Shift::all();
+            $this->shifts = Shift::with($this->relations)
+                ->select($this->fields)
+                ->get();
+
             return new ShiftCollection($this->shifts);
         } catch (Exception $e) {
             return $this->handleException($e);
         }
     }
 
-    public function getDeleted() {
+    public function getTrashed() {
         try {
-            $this->shifts = Shift::onlyTrashed()->get();
+            $this->shifts = Shift::with($this->relations)
+                ->select($this->fields)
+                ->onlyTrashed()
+                ->get();
+
             return new ShiftCollection($this->shifts);
         } catch (Exception $e) {
             return $this->handleException($e);
@@ -40,7 +57,8 @@ class ShiftController extends Controller
     {
         try {
             $shift = Shift::create($request->validated());
-            return $this->createdResponse($shift, config('messages.success.create_title'), 'El turno '.config('messages.success.create_message'));
+            $this->shift = new ShiftResource($shift);
+            return $this->createdResponse($this->shift, config('messages.success.create_title'), 'El turno '.config('messages.success.create_message'));
         } catch (Exception $e) {
             return $this->handleException($e);
         }
@@ -59,7 +77,8 @@ class ShiftController extends Controller
     {
         try {
             $shift->update($request->validated());
-            return $this->successResponse($shift, config('messages.success.update_title'), 'El turno '.config('messages.success.update_message'));
+            $this->shift = new ShiftResource($shift);
+            return $this->successResponse($this->shift, config('messages.success.update_title'), 'El turno '.config('messages.success.update_message'));
         } catch (Exception $e) {
             return $this->handleException($e);
         }
@@ -68,16 +87,18 @@ class ShiftController extends Controller
     public function destroy($id)
     {
         try {
-            $delete = filter_var(request()->query('delete'), FILTER_VALIDATE_BOOL);
+            $force = filter_var(request()->query('delete'), FILTER_VALIDATE_BOOL);
             $shift = Shift::withTrashed()->findOrFail($id);
-            if(!$delete) {
-                $shift->delete();
-                return $this->successResponse(null, config('messages.success.remove_title'), 'El turno '.config('messages.success.remove_message'));
-            } else {
-                $shift->forceDelete();
-                return $this->successResponse(null, config('messages.success.delete_title'), 'El turno '.config('messages.success.delete_message'));
-            }
-        } catch (Exception $e) {
+
+            $shift->safeDelete($force);
+            $messageKey = $force ? 'delete' : 'remove';
+
+            return $this->successResponse(null, config("messages.success.{$messageKey}_title"), 'El turno '.config("messages.success.{$messageKey}_message"));
+        }
+        catch (HandleException $e) {
+            return $this->errorResponse($e->getMessage(), 422);
+        }
+        catch (Exception $e) {
             return $this->handleException($e);
         }
     }
@@ -87,7 +108,8 @@ class ShiftController extends Controller
         try {
             $shift = Shift::onlyTrashed()->findOrFail($id);
             $shift->restore();
-            return $this->successResponse(null, config('messages.success.restore_title'), 'El turno '.config('messages.success.restore_message'));
+            $this->shift = new ShiftResource($shift);
+            return $this->successResponse($this->shift, config('messages.success.restore_title'), 'El turno '.config('messages.success.restore_message'));
         } catch (Exception $e) {
             return $this->handleException($e);
         }
@@ -98,23 +120,26 @@ class ShiftController extends Controller
         try {
             $shifts = new ShiftCollection($request->resources);
             $shiftIds = $shifts->getIdsAttribute();
-            $delete = filter_var($request->del, FILTER_VALIDATE_BOOL);
+            $force = filter_var($request->del, FILTER_VALIDATE_BOOL);
+            $active = filter_var($request->active, FILTER_VALIDATE_BOOL);
 
-            $existingShift = Shift::withTrashed()->whereIn('id', $shiftIds)->count();
+            $result = Shift::destroyAll($shiftIds, $force);
 
-            if ($existingShift !== count($shiftIds)) {
-                return $this->errorResponse('Uno de los registros no existe.'.$existingShift, 404);
-            }
+            $data = $active
+                ? shift::with($this->relations)->select($this->fields)->get()
+                : shift::with($this->relations)->select($this->fields)->onlyTrashed()->get();
 
-            if(!$delete) {
-                Shift::whereIn('id', $shiftIds)->delete();
-                return $this->successResponse(null, config('messages.success.removeall_title'), 'Los turnos '.config('messages.success.removeall_message'));
-            }
-            else {
-                Shift::whereIn('id', $shiftIds)->forceDelete();
-                return $this->successResponse(null, config('messages.success.deleteall_title'), 'Los turnos '.config('messages.success.deleteall_message'));
-            }
-        } catch (Exception $e) {
+            return $this->successResponse(
+                $data,
+                $result['title'],
+                $result['message']
+            );
+        }
+        catch (HandleException $e) {
+            return $this->errorResponse($e->getMessage(), 422);
+        }
+        catch (Exception $e) {
+            DB::rollBack();
             return $this->handleException($e);
         }
     }
@@ -122,10 +147,14 @@ class ShiftController extends Controller
     public function restoreAll(Request $request)
     {
         try {
-            $shifts = new ShiftCollection($request->resources);
-            $shiftIds = $shifts->getIdsAttribute();
-            Shift::whereIn('id', $shiftIds)->restore();
-            return $this->successResponse(null, config('messages.success.restoreall_title'), 'Los turnos '.config('messages.success.restoreall_message'));
+            return DB::transaction(function() use ($request) {
+                $shifts = new ShiftCollection($request->resources);
+                $shiftIds = $shifts->getIdsAttribute();
+                Shift::whereIn('id', $shiftIds)->restore();
+                $this->shifts = Shift::whereIn('id', $shiftIds)->get();
+
+                return $this->successResponse($this->shifts, config('messages.success.restoreall_title'), 'Los turnos '.config('messages.success.restoreall_message'));
+            }, 5);
         } catch (Exception $e) {
             return $this->handleException($e);
         }

@@ -28,8 +28,23 @@ class WorkerRequest extends FormRequest
             ],
             'birth_date' => 'required',
             'type_worker_id' => 'required',
-            'user_id' => 'required',
+            'company_id' => 'required',
+            'created_by' => [
+                Rule::when($this->isMethod('POST'), [
+                    'required',
+                ]),
+            ]
         ];
+    }
+
+    public function getAllFields()
+    {
+        return array_filter(
+            $this->all(),
+            function ($value) {
+                return $value !== null && $value !== '';
+            }
+        );
     }
 
     public function failedValidation(Validator $validator)
@@ -58,7 +73,8 @@ class WorkerRequest extends FormRequest
             'dni.max' => 'El DNI puede tener hasta 8 dígitos',
             'birth_date.required' => 'La fecha de nacimiento es requerida',
             'type_worker_id.required' => 'El tipo de trabajador es requerido',
-            'user_id.required' => 'El usuario es requerido',
+            'company_id.required' => 'La empresa es requerida',
+            'created_by.required' => 'El usuario es requerido',
         ];
     }
 }

@@ -16,7 +16,8 @@ return new class extends Migration
             $table->foreignId('center_id')->constrained();
             $table->foreignId('customer_id')->constrained()->onDelete(('cascade'));
             $table->integer('min_assign')->default(0);
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();
             $table->softDeletes()->nullable();
         });

@@ -18,7 +18,10 @@ class ShiftResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'shortName' => $this->shortName,
-            'user_id' => $this->user->id,
+            'Created_by' => $this->createdBy,
+            'updated_by' => $this->updatedBy,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at
         ];
     }
 }

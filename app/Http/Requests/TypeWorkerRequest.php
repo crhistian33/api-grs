@@ -21,8 +21,22 @@ class TypeWorkerRequest extends FormRequest
                 'required',
                 Rule::unique('type_workers')->ignore($this->route('typeworker')),
             ],
-            'user_id' => 'required',
+            'created_by' => [
+                Rule::when($this->isMethod('POST'), [
+                    'required',
+                ]),
+            ]
         ];
+    }
+
+    public function getAllFields()
+    {
+        return array_filter(
+            $this->all(),
+            function ($value) {
+                return $value !== null && $value !== '';
+            }
+        );
     }
 
     public function failedValidation(Validator $validator)
@@ -46,7 +60,7 @@ class TypeWorkerRequest extends FormRequest
         return [
             'name.required' => 'El nombre es requerido',
             'name.unique' => 'El nombre ingresado ya existe',
-            'user_id.required' => 'El usuario es requerido',
+            'created_by.required' => 'El usuario es requerido',
         ];
     }
 }

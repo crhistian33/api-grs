@@ -19,9 +19,12 @@ class WorkerResource extends JsonResource
             'name' => $this->name,
             'dni' => $this->dni,
             'birth_date' => $this->birth_date,
-            'type_worker_id' => $this->typeWorker->id,
             'typeworker' => $this->typeworker,
-            'user_id' => $this->user->id,
+            'company' => $this->company,
+            'Created_by' => $this->createdBy,
+            'updated_by' => $this->updatedBy,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at
         ];
     }
 }

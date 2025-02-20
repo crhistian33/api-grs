@@ -11,7 +11,7 @@ class UnitRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return false;
     }
 
     public function rules(): array
@@ -28,8 +28,22 @@ class UnitRequest extends FormRequest
             'center_id' => 'required',
             'customer_id' => 'required',
             'min_assign' => 'required',
-            'user_id' => 'required',
+            'created_by' => [
+                Rule::when($this->isMethod('POST'), [
+                    'required',
+                ]),
+            ]
         ];
+    }
+
+    public function getAllFields()
+    {
+        return array_filter(
+            $this->all(),
+            function ($value) {
+                return $value !== null && $value !== '';
+            }
+        );
     }
 
     public function failedValidation(Validator $validator)
@@ -58,7 +72,7 @@ class UnitRequest extends FormRequest
             'center_id.required' => 'El centro de costo es requerido',
             'customer_id.required' => 'El cliente es requerido',
             'min_assign.required' => 'El número de trabajadores a asignar es requerido',
-            'user_id.required' => 'El usuario es requerido',
+            'created_by.required' => 'El usuario es requerido',
         ];
     }
 }

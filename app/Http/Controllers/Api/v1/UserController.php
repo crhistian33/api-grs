@@ -21,17 +21,4 @@ class UserController extends Controller
     {
         $this->middleware('auth:api');
     }
-
-    public function getProfile(Request $request)
-    {
-        try {
-            $this->user = $request->user();
-            return new UserResource($this->user);
-        } catch (Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage()
-            ]);
-            //return $this->handleException($e);
-        }
-    }
 }

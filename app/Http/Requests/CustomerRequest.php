@@ -26,7 +26,11 @@ class CustomerRequest extends FormRequest
                 Rule::unique('customers')->ignore($this->route('customer')),
             ],
             'company_id' => 'required',
-            'user_id' => 'required',
+            'created_by' => [
+                Rule::when($this->isMethod('POST'), [
+                    'required',
+                ]),
+            ]
         ];
     }
 
@@ -64,7 +68,7 @@ class CustomerRequest extends FormRequest
             'name.required' => 'El nombre es requerido',
             'name.unique' => 'El nombre ingresado ya existe',
             'company_id.required' => 'La empresa es requerida',
-            'user_id.required' => 'El usuario es requerido',
+            'created_by.required' => 'El usuario es requerido',
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RefreshTokenRequest;
+use App\Http\Resources\v1\UserResource;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -13,7 +14,7 @@ class AuthController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login']]);
+        $this->middleware('auth:api', ['except' => ['login', 'refreshToken']]);
     }
 
     public function login(LoginRequest $request)
@@ -25,11 +26,16 @@ class AuthController extends Controller
                 return response()->json(['error' => 'Credenciales incorrectas'], 401);
             }
 
+            $user = JWTAuth::user();
             $refreshToken = $this->createRefreshToken(JWTAuth::user());
 
             return response()->json([
-                'access_token' => $token,
-                'refresh_token' => $refreshToken,
+                'success' => true,
+                'data' => [
+                    'access_token' => $token,
+                    'refresh_token' => $refreshToken,
+                    'user' => new UserResource($user),
+                ]
             ]);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Token inválido o expirado'], 500);
@@ -51,8 +57,11 @@ class AuthController extends Controller
             $newRefreshToken = $this->createRefreshToken($user);
 
             return response()->json([
-                'access_token' => $newAccessToken,
-                'refresh_token' => $newRefreshToken,
+                'success' => true,
+                'data' => [
+                    'access_token' => $newAccessToken,
+                    'refresh_token' => $newRefreshToken,
+                ]
             ]);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Token inválido o expirado'], 401);
@@ -79,7 +88,7 @@ class AuthController extends Controller
 
             if(! $token) {
                 return response()->json([
-                    'status' => 'error',
+                    'success' => false,
                     'message' => 'Token no proporcionado'
                 ], 401);
             }
@@ -87,12 +96,12 @@ class AuthController extends Controller
             JWTAuth::invalidate($token);
 
             return response()->json([
-                'status' => 'success',
+                'success' => true,
                 'message' => 'Sesión cerrada exitosamente'
             ]);
         } catch (JWTException $e) {
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Error al cerrar la sesión'
             ], 500);
         }

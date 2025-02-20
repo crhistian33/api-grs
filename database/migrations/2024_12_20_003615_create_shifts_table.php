@@ -12,7 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('name', 20)->unique();
             $table->string('shortName', 3)->unique();
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();
             $table->softDeletes()->nullable();
         });

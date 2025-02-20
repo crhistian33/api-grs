@@ -32,45 +32,45 @@ Route::get('/v1/assignments/reassignments', [AssignmentV1::class, 'getReassignme
 Route::post('/v1/assignments/destroyes', [AssignmentV1::class, 'destroyAll']);
 Route::get('/v1/assignments/unitshifts', [AssignmentV1::class, 'getUnitShifts']);
 
-Route::get('/v1/workers/deletes', [WorkerV1::class, 'getDeleted']);
+Route::get('/v1/workers/all/{company?}', [WorkerV1::class, 'all']);
+Route::get('/v1/workers/deletes/{company?}', [WorkerV1::class, 'getTrashed']);
+Route::get('/v1/workers/unassigns/{assignment?}', [WorkerV1::class, 'getUnassigned']);
+Route::get('/v1/workers/titulars/{company?}', [WorkerV1::class, 'getTitulars']);
+Route::post('/v1/workers/destroyes/{company?}', [WorkerV1::class, 'destroyAll']);
 Route::get('/v1/workers/restore/{worker}', [WorkerV1::class, 'restore']);
-Route::post('/v1/workers/destroyes', [WorkerV1::class, 'destroyAll']);
 Route::post('/v1/workers/restores', [WorkerV1::class, 'restoreAll']);
-Route::get('/v1/workers/unassigneds', [WorkerV1::class, 'getUnassigned']);
-Route::get('/v1/workers/titulars', [WorkerV1::class, 'getAllMain']);
-Route::get('/v1/workers/assigns/{assignment}', [WorkerV1::class, 'getWorkersEdit']);
-// Route::get('/v1/workers/reassigns', [WorkerV1::class, 'getWorkersReassigns']);
 
-Route::get('/v1/type_workers/deletes', [TypeWorkerV1::class, 'getDeleted']);
-Route::get('/v1/type_workers/restore/{type_worker}', [TypeWorkerV1::class, 'restore']);
+Route::get('/v1/type_workers/deletes', [TypeWorkerV1::class, 'getTrashed']);
 Route::post('/v1/type_workers/destroyes', [TypeWorkerV1::class, 'destroyAll']);
+Route::get('/v1/type_workers/restore/{type_worker}', [TypeWorkerV1::class, 'restore']);
 Route::post('/v1/type_workers/restores', [TypeWorkerV1::class, 'restoreAll']);
 
-Route::get('/v1/centers/deletes', [CenterV1::class, 'getDeleted']);
-Route::get('/v1/centers/restore/{center}', [CenterV1::class, 'restore']);
+Route::get('/v1/centers/deletes', [CenterV1::class, 'getTrashed']);
 Route::post('/v1/centers/destroyes', [CenterV1::class, 'destroyAll']);
+Route::get('/v1/centers/restore/{center}', [CenterV1::class, 'restore']);
 Route::post('/v1/centers/restores', [CenterV1::class, 'restoreAll']);
 
-Route::get('/v1/companies/deletes', [CompanyV1::class, 'getDeleted']);
-Route::get('/v1/companies/restore/{company}', [CompanyV1::class, 'restore']);
+Route::get('/v1/companies/deletes', [CompanyV1::class, 'getTrashed']);
 Route::post('/v1/companies/destroyes', [CompanyV1::class, 'destroyAll']);
+Route::get('/v1/companies/restore/{company}', [CompanyV1::class, 'restore']);
 Route::post('/v1/companies/restores', [CompanyV1::class, 'restoreAll']);
 
-Route::get('/v1/customers/deletes', [CustomerV1::class, 'getDeleted']);
+Route::get('/v1/customers/all/{company?}', [CustomerV1::class, 'all']);
+Route::get('/v1/customers/deletes', [CustomerV1::class, 'getTrashed']);
+Route::post('/v1/customers/destroyes/{company?}', [CustomerV1::class, 'destroyAll']);
 Route::get('/v1/customers/restore/{customer}', [CustomerV1::class, 'restore']);
-Route::post('/v1/customers/destroyes', [CustomerV1::class, 'destroyAll']);
 Route::post('/v1/customers/restores', [CustomerV1::class, 'restoreAll']);
 
-Route::get('/v1/shifts/deletes', [ShiftV1::class, 'getDeleted']);
-Route::get('/v1/shifts/restore/{shift}', [ShiftV1::class, 'restore']);
+Route::get('/v1/shifts/deletes', [ShiftV1::class, 'getTrashed']);
 Route::post('/v1/shifts/destroyes', [ShiftV1::class, 'destroyAll']);
+Route::get('/v1/shifts/restore/{shift}', [ShiftV1::class, 'restore']);
 Route::post('/v1/shifts/restores', [ShiftV1::class, 'restoreAll']);
 
-Route::get('/v1/units/deletes', [UnitV1::class, 'getDeleted']);
+Route::get('/v1/units/all/{company?}', [UnitV1::class, 'all']);
+Route::get('/v1/units/deletes', [UnitV1::class, 'getTrashed']);
+Route::post('/v1/units/destroyes/{company?}', [UnitV1::class, 'destroyAll']);
 Route::get('/v1/units/restore/{unit}', [UnitV1::class, 'restore']);
-Route::post('/v1/units/destroyes', [UnitV1::class, 'destroyAll']);
 Route::post('/v1/units/restores', [UnitV1::class, 'restoreAll']);
-// Route::get('/v1/units/unitshifts', [UnitV1::class, 'getUnitShifts']);
 
 Route::get('/v1/unitshifts/getwithassigns', [UnitShiftV1::class, 'getWithAssigns']);
 Route::get('/v1/unitshifts/verified/{unitshift}/{assignment?}', [UnitShiftV1::class, 'verifiedAssignment']);
@@ -78,19 +78,19 @@ Route::get('/v1/unitshifts/verified/{unitshift}/{assignment?}', [UnitShiftV1::cl
 Route::post('/v1/worker_assignments/destroyes', [WorkerAssignV1::class, 'destroyAll']);
 
 Route::get('/v1/counts', [CountV1::class, 'getcounts']);
-
-Route::get('/v1/users/profile', [UserV1::class, 'getProfile']);
+Route::get('/v1/countsbycompany/{company}', [CountV1::class, 'getCountsByCompany']);
 
 Route::apiResources([
-    '/v1/workers' => WorkerV1::class,
     '/v1/worker_assignments' => WorkerAssignV1::class,
     'v1/companies' => CompanyV1::class,
     'v1/type_workers' => TypeWorkerV1::class,
     'v1/centers' => CenterV1::class,
-    'v1/customers' => CustomerV1::class,
-    'v1/units' => UnitV1::class,
     'v1/shifts' => ShiftV1::class,
     'v1/assignments' => AssignmentV1::class,
     'v1/unitshifts' => UnitShiftV1::class,
     'v1/assists' => AssistV1::class,
 ]);
+
+Route::apiResource('v1/workers', WorkerV1::class)->except(['index']);
+Route::apiResource('v1/customers', CustomerV1::class)->except(['index']);
+Route::apiResource('v1/units', UnitV1::class)->except(['index']);

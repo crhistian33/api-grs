@@ -18,7 +18,8 @@ return new class extends Migration
             $table->bigInteger('replace_state_id')->nullable()->constrained('states');
             $table->boolean('is_pay')->default(false);
             $table->decimal('pay_mount', 9, 2)->nullable();
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();
             $table->softDeletes()->nullable();
         });

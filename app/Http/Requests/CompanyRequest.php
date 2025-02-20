@@ -25,7 +25,11 @@ class CompanyRequest extends FormRequest
                 'required',
                 Rule::unique('companies')->ignore($this->route('company')),
             ],
-            'user_id' => 'required',
+            'created_by' => [
+                Rule::when($this->isMethod('POST'), [
+                    'required',
+                ]),
+            ]
         ];
     }
 
@@ -62,7 +66,7 @@ class CompanyRequest extends FormRequest
             'code.unique' => 'El código ingresado ya existe',
             'name.required' => 'El nombre es requerido',
             'name.unique' => 'El nombre ingresado ya existe',
-            'user_id.required' => 'El usuario es requerido',
+            'created_by.required' => 'El usuario es requerido',
         ];
     }
 }
