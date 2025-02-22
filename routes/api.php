@@ -73,6 +73,7 @@ Route::post('/v1/units/destroyes/{company?}', [UnitV1::class, 'destroyAll']);
 Route::get('/v1/units/restore/{unit}', [UnitV1::class, 'restore']);
 Route::post('/v1/units/restores', [UnitV1::class, 'restoreAll']);
 
+Route::get('/v1/unitshifts/all/{company?}', [UnitShiftV1::class, 'all']);
 Route::get('/v1/unitshifts/getwithassigns', [UnitShiftV1::class, 'getWithAssigns']);
 Route::get('/v1/unitshifts/verified/{unitshift}/{assignment?}', [UnitShiftV1::class, 'verifiedAssignment']);
 
@@ -87,7 +88,7 @@ Route::apiResources([
     'v1/type_workers' => TypeWorkerV1::class,
     'v1/centers' => CenterV1::class,
     'v1/shifts' => ShiftV1::class,
-    'v1/unitshifts' => UnitShiftV1::class,
+    //'v1/unitshifts' => UnitShiftV1::class,
     'v1/assists' => AssistV1::class,
 ]);
 

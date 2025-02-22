@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\v1\UnitResource;
 use App\Http\Resources\v1\UnitShiftCollection;
 use App\Models\Assignment;
+use App\Models\Company;
 use App\Models\UnitShift;
 use App\Traits\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,10 +18,17 @@ class UnitShiftController extends Controller
 
     protected $unitshifts;
 
-    public function index() {
-        $this->unitshifts = UnitShift::whereHas('unit')
-            ->whereHas('shift')
-            ->get()
+    public function all(?Company $company = null) {
+        $query = UnitShift::whereHas('unit')
+        ->whereHas('shift');
+
+        if ($company) {
+            $query->whereHas('unit.customer', function($q) use ($company) {
+                $q->where('company_id', $company->id);
+            });
+        }
+
+        $this->unitshifts = $query->get()
             ->map(function ($unitshift) {
                 return [
                     'id' => $unitshift->id,
@@ -33,7 +41,6 @@ class UnitShiftController extends Controller
         return response()->json([
             'data' => $this->unitshifts
         ]);
-            //return new UnitShiftCollection($this->unitshifts);
     }
 
     public function getWithAssigns() {
