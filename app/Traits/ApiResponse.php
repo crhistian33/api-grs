@@ -85,7 +85,7 @@ trait ApiResponse
             // Error de llave única
             if ($e->getCode() === '23000') {
                 return $this->errorResponse(
-                    'Ya existe un registro con estos datos.',
+                    'Ya existe un registro con estos datos.'.$e->getMessage(),
                     Response::HTTP_CONFLICT
                 );
             }

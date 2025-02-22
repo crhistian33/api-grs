@@ -26,15 +26,16 @@ Route::post('v1/auth/login', [AuthV1::class, 'login']);
 Route::post('v1/auth/refresh', [AuthV1::class, 'refreshToken']);
 Route::get('v1/auth/logout', [AuthV1::class, 'logout']);
 
+Route::get('/v1/assignments/all/{company?}', [AssignmentV1::class, 'all']);
 Route::get('/v1/assignments/verified/{unit_shift}', [AssignmentV1::class, 'verifiedUnit']);
-Route::get('/v1/assignments/deletes', [AssignmentV1::class, 'getDeleted']);
-Route::get('/v1/assignments/reassignments', [AssignmentV1::class, 'getReassignment']);
+Route::get('/v1/assignments/deletes', [AssignmentV1::class, 'getTrasheds']);
+//Route::get('/v1/assignments/reassignments', [AssignmentV1::class, 'getReassignment']);
 Route::post('/v1/assignments/destroyes', [AssignmentV1::class, 'destroyAll']);
-Route::get('/v1/assignments/unitshifts', [AssignmentV1::class, 'getUnitShifts']);
+//Route::get('/v1/assignments/unitshifts', [AssignmentV1::class, 'getUnitShifts']);
 
 Route::get('/v1/workers/all/{company?}', [WorkerV1::class, 'all']);
 Route::get('/v1/workers/deletes/{company?}', [WorkerV1::class, 'getTrashed']);
-Route::get('/v1/workers/unassigns/{assignment?}', [WorkerV1::class, 'getUnassigned']);
+Route::get('/v1/workers/unassigns', [WorkerV1::class, 'getUnassigned']);
 Route::get('/v1/workers/titulars/{company?}', [WorkerV1::class, 'getTitulars']);
 Route::post('/v1/workers/destroyes/{company?}', [WorkerV1::class, 'destroyAll']);
 Route::get('/v1/workers/restore/{worker}', [WorkerV1::class, 'restore']);
@@ -86,7 +87,6 @@ Route::apiResources([
     'v1/type_workers' => TypeWorkerV1::class,
     'v1/centers' => CenterV1::class,
     'v1/shifts' => ShiftV1::class,
-    'v1/assignments' => AssignmentV1::class,
     'v1/unitshifts' => UnitShiftV1::class,
     'v1/assists' => AssistV1::class,
 ]);
@@ -94,3 +94,4 @@ Route::apiResources([
 Route::apiResource('v1/workers', WorkerV1::class)->except(['index']);
 Route::apiResource('v1/customers', CustomerV1::class)->except(['index']);
 Route::apiResource('v1/units', UnitV1::class)->except(['index']);
+Route::apiResource('v1/assignments', AssignmentV1::class)->except(['index']);

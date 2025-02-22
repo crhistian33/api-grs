@@ -7,6 +7,7 @@ use App\Http\Requests\AssignmentRequest;
 use App\Http\Resources\v1\AssignmentCollection;
 use App\Http\Resources\v1\AssignmentResource;
 use App\Models\Assignment;
+use App\Models\Company;
 use App\Models\UnitShift;
 use App\Traits\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,69 +19,102 @@ class AssignmentController extends Controller
     use ApiResponse;
 
     protected $assignments;
+    protected $assignment;
+    protected array $relations = ['unitshift', 'workers', 'unitshift', 'workers'];
+    protected array $fields = ['assignments.id', 'assignments.start_date', 'assignments.state', 'unitshift', 'workers'];
 
-    public function index()
+    public function all(?Company $company = null)
     {
         try {
-            $this->assignments = Assignment::orderBy('created_at', 'desc')->get();
+            $query = Assignment::query()
+                ->with([
+                    'unitShift.unit.customer.company',
+                    'workers'
+                ]);
+
+            if ($company) {
+                $query->whereHas('unitShift.unit.customer', function ($query) use ($company) {
+                    $query->whereHas('company', function ($query) use ($company) {
+                        $query->where('id', $company->id);
+                    });
+                });
+            }
+
+            $this->assignments = $query->orderBy('created_at', 'desc')->get();
             return new AssignmentCollection($this->assignments);
         } catch (Exception $e) {
             return $this->handleException($e);
         }
     }
 
-    public function getDeleted() {
+    public function getTrasheds(?Company $company = null) {
         try {
-            $this->assignments = Assignment::onlyTrashed()->orderBy('created_at', 'desc')->get();
+            $query = Assignment::query()
+                ->with([
+                    'unitShift.unit.customer.company',
+                    'workers'
+                ]);
+
+            if ($company) {
+                $query->whereHas('unitShift.unit.customer', function ($query) use ($company) {
+                    $query->whereHas('company', function ($query) use ($company) {
+                        $query->where('id', $company->id);
+                    });
+                });
+            }
+
+            $this->assignments = $query->onlyTrashed()->orderBy('created_at', 'desc')->get();
             return new AssignmentCollection($this->assignments);
         } catch (Exception $e) {
             return $this->handleException($e);
         }
     }
 
-    public function getReassignment() {
-        try {
-            $this->assignments = Assignment::orderBy('created_at', 'desc')->with('workers')->get();
-            return response()->json($this->assignments); //new AssignmentCollection($this->assignments);
-        } catch (Exception $e) {
-            return $this->handleException($e);
-        }
-    }
+    // public function getReassignment() {
+    //     try {
+    //         $this->assignments = Assignment::orderBy('created_at', 'desc')->with('workers')->get();
+    //         return response()->json($this->assignments); //new AssignmentCollection($this->assignments);
+    //     } catch (Exception $e) {
+    //         return $this->handleException($e);
+    //     }
+    // }
 
-    public function getUnitShifts() {
-        $unitshifts = Assignment::where('state', true)
-            ->with('unitShift.unit', 'unitShift.shift')
-            ->whereHas('unitShift')
-            ->get()
-            ->map(function($assignment) {
-                return [
-                    'assign_id' => $assignment->id,
-                    'unit_shift_id' => $assignment->unit_shift_id,
-                    'name' => "{$assignment->unitShift->unit->name} - {$assignment->unitShift->shift->name}",
-                    // ->map(function ($unitshift) {
-                    //     return [
-                    //         'id' => $unitshift->id
-                    //     ];
-                    // }),
-                ];
-            });
+    // public function getUnitShifts() {
+    //     $unitshifts = Assignment::where('state', true)
+    //         ->with('unitShift.unit', 'unitShift.shift')
+    //         ->whereHas('unitShift')
+    //         ->get()
+    //         ->map(function($assignment) {
+    //             return [
+    //                 'assign_id' => $assignment->id,
+    //                 'unit_shift_id' => $assignment->unit_shift_id,
+    //                 'name' => "{$assignment->unitShift->unit->name} - {$assignment->unitShift->shift->name}",
+    //                 // ->map(function ($unitshift) {
+    //                 //     return [
+    //                 //         'id' => $unitshift->id
+    //                 //     ];
+    //                 // }),
+    //             ];
+    //         });
 
-        return response()->json($unitshifts);
-    }
+    //     return response()->json($unitshifts);
+    // }
 
     public function store(AssignmentRequest $request)
     {
         try {
-            $validatedData = $request->validated();
+            $validatedData = $request->getAllFields();
             if (!$request->has('start_date')) {
                 $validatedData['start_date'] = now()->toDateString();
             }
             $assignment = Assignment::create($validatedData);
+
             if($request->has('workers')) {
                 $workerIds = collect($request->workers)->pluck('id')->toArray();
                 $assignment->workers()->attach($workerIds, ['created_at' => now()]);
             }
-            return $this->createdResponse($assignment, config('messages.success.create_title'), 'La asignación '.config('messages.success.create_message'));
+            $this->assignment = new AssignmentResource($assignment);
+            return $this->createdResponse($this->assignment, config('messages.success.create_title'), 'La asignación '.config('messages.success.create_message'));
         } catch (Exception $e) {
             return $this->handleException($e);
         }
@@ -103,7 +137,8 @@ class AssignmentController extends Controller
                 $workerIds = collect($request->workers)->pluck('id')->toArray();
                 $assignment->workers()->sync($workerIds);
             }
-            return $this->successResponse($assignment, config('messages.success.update_title'), 'La asignación '.config('messages.success.update_message'));
+            $this->assignment = new AssignmentResource($assignment);
+            return $this->successResponse($this->assignment, config('messages.success.update_title'), 'La asignación '.config('messages.success.update_message'));
         } catch (Exception $e) {
             return $this->handleException($e);
         }

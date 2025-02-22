@@ -18,7 +18,8 @@ class Assignment extends Model
         'start_date',
         'end_date',
         'state',
-        'user_id',
+        'created_by',
+        'update_by'
     ];
 
     public function unitShift(): BelongsTo
@@ -31,8 +32,13 @@ class Assignment extends Model
         return $this->belongsToMany(Worker::class, 'worker_assignments');
     }
 
-    public function user(): BelongsTo
+    public function createdBy()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

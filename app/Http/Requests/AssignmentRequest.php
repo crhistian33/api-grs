@@ -11,14 +11,18 @@ class AssignmentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     public function rules(): array
     {
         return [
             'unit_shift_id' => 'required',
-            'user_id' => 'required',
+            'created_by' => [
+                Rule::when($this->isMethod('POST'), [
+                    'required',
+                ]),
+            ]
         ];
     }
 
@@ -52,7 +56,7 @@ class AssignmentRequest extends FormRequest
     {
         return [
             'unit_shift_id.required' => 'La unidad por turno es requerida',
-            'user_id.required' => 'El usuario es requerido',
+            'created_by.required' => 'El usuario es requerido',
         ];
     }
 }

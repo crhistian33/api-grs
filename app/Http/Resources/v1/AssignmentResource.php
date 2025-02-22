@@ -11,15 +11,16 @@ class AssignmentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            // 'unit' => new UnitResource($this->unitShift->unit),
-            // 'shift' => new ShiftResource($this->unitShift->shift),
             'start_date' => $this->start_date,
             'state' => $this->state,
             'unit_shift_id' => $this->unitShift->id,
             'unitshift' => new UnitShiftResource($this->unitshift),
             'workers_count' => count(WorkerResource::collection($this->workers)),
             'workers' => WorkerResource::collection($this->workers),
-            'user_id' => $this->user->id,
+            'Created_by' => $this->createdBy,
+            'updated_by' => $this->updatedBy,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at
         ];
     }
 }

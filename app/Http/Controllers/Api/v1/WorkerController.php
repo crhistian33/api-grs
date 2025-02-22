@@ -26,10 +26,10 @@ class WorkerController extends Controller
     protected array $fields = ['id', 'name', 'dni', 'birth_date', 'type_worker_id', 'company_id', 'created_by', 'updated_by'];
     protected array $basic_fields = ['id', 'name', 'dni', 'birth_Date'];
 
-    public function __construct()
-    {
-        $this->middleware('auth:api');
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('auth:api');
+    // }
 
     public function all(?Company $company = null)
     {
@@ -81,19 +81,23 @@ class WorkerController extends Controller
         }
     }
 
-    public function getUnassigned(?Assignment $assignment = null) {
+    public function getUnassigned(Request $request) {
         try {
-            $query = Worker::type('Titular')
-            ->unassigned();
+            $query = Worker::type('Titular')->unassigned();
 
-            if ($assignment) {
-                $query->orWhereHas('assignments', function ($q) use ($assignment) {
-                    $q->where('assignments.id', $assignment->id);
+            if($request->has('company_id')) {
+                $companyId = $request->input('company_id');
+                $query->where('company_id', $companyId);
+            }
+
+            if ($request->has('assignment_id')) {
+                $assignmentId = $request->input('assignment_id');
+                $query->orWhereHas('assignments', function ($q) use ($assignmentId) {
+                    $q->where('assignments.id', $assignmentId);
                 });
             }
 
-            $this->workers = $query->select($this->basic_fields)
-                ->get();
+            $this->workers = $query->select($this->basic_fields)->get();
 
             return new WorkerBasicCollection($this->workers);
         } catch (Exception $e) {

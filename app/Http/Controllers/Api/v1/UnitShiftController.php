@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\v1\UnitResource;
 use App\Http\Resources\v1\UnitShiftCollection;
 use App\Models\Assignment;
 use App\Models\UnitShift;
@@ -25,6 +26,7 @@ class UnitShiftController extends Controller
                     'id' => $unitshift->id,
                     'name' => $unitshift->unit->name.' - '.$unitshift->shift->name,
                     'assignments' => $unitshift->assignments,
+                    'unit' => new UnitResource($unitshift->unit),
                 ];
             });
 
@@ -43,6 +45,7 @@ class UnitShiftController extends Controller
             return [
                 'id' => $unitshift->id,
                 'name' => "{$unitshift->unit->name} - {$unitshift->shift->name}",
+                'unit' => $unitshift->unit,
                 'assignments' =>$unitshift->assignments->map(function($assignment) {
                     return [
                         'id' => $assignment->id
