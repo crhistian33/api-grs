@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Assignment extends Model
@@ -22,6 +23,12 @@ class Assignment extends Model
         'update_by'
     ];
 
+    public function scopeActiveToUnitshift($query, $unit_shift_id) {
+        return $query->where('state', 1)->whereHas('unitShift', function($query) use ($unit_shift_id) {
+            $query->where('id', $unit_shift_id);
+        });
+    }
+
     public function unitShift(): BelongsTo
     {
         return $this->belongsTo(UnitShift::class);
@@ -29,7 +36,14 @@ class Assignment extends Model
 
     public function workers(): BelongsToMany
     {
-        return $this->belongsToMany(Worker::class, 'worker_assignments');
+        return $this->belongsToMany(Worker::class, 'worker_assignments')
+                    ->withPivot('id');
+    }
+
+    // Relación HasMany con WorkerAssignment
+    public function workerAssignments(): HasMany
+    {
+        return $this->hasMany(WorkerAssignment::class, 'assignment_id');
     }
 
     public function createdBy()

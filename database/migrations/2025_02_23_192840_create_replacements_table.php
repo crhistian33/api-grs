@@ -6,18 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('assists', function (Blueprint $table) {
+        Schema::create('replacements', function (Blueprint $table) {
             $table->id();
-            $table->date('start_date');
-            $table->foreignId('worker_assignment_id')->constrained();
-            $table->foreignId('state_id')->constrained();
-            $table->boolean('is_assist')->default(false);
-            $table->bigInteger('replace_worker_id')->nullable()->constrained('workers');
-            $table->bigInteger('replace_state_id')->nullable()->constrained('states');
+            $table->bigInteger('worker_id')->constrained();
+            $table->bigInteger('state_id')->constrained();
             $table->boolean('is_pay')->default(false);
             $table->decimal('pay_mount', 9, 2)->nullable();
+            $table->text('comment')->nullable();
             $table->foreignId('created_by')->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();
@@ -25,8 +25,11 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('assists');
+        Schema::dropIfExists('replacements');
     }
 };

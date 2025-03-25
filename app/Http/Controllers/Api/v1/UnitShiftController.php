@@ -97,5 +97,22 @@ class UnitShiftController extends Controller
         ], Response::HTTP_OK);
     }
 
+    public function getWorkers(UnitShift $unitShift) {
+        $query = $unitShift
+            ->assignments()
+            ->with('workers')
+            ->where('state', true)
+            ->first();
 
+        $workers = $query->workers->map(function($worker) {
+            return [
+                'id' => $worker->id,
+                'name' => $worker->name,
+            ];
+        });
+
+        return response()->json([
+            'data' => $workers
+        ]);
+    }
 }

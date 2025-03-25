@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +34,21 @@ class Worker extends Model
     }
 
     public function scopeUnassigned($query) {
-        return $query->whereDoesntHave('assignments');
+        return $query->whereDoesntHave('workerAssignments', function($query) {
+            $query->whereNull('deleted_at');
+        });
+    }
+
+    public function activeAssignment()
+    {
+        return $this->hasOne(WorkerAssignment::class)
+            ->whereNull('deleted_at')
+            ->with('assignment');
+    }
+
+    public function getActiveUnitShiftId()
+    {
+        return optional($this->activeAssignment->assignment)->unit_shift_id;
     }
 
 
@@ -49,7 +64,23 @@ class Worker extends Model
 
     public function assignments(): BelongsToMany
     {
-        return $this->belongsToMany(Assignment::class, 'worker_assignments');
+        return $this->belongsToMany(Assignment::class, 'worker_assignments')
+                    ->withPivot('deleted_at');
+    }
+
+    public function workerAssignments(): HasMany
+    {
+        return $this->hasMany(WorkerAssignment::class, 'worker_id');
+    }
+
+    public function assignmentBreaks(): HasMany
+    {
+        return $this->hasMany(AssignmentBreak::class);
+    }
+
+    public function inassists(): HasMany
+    {
+        return $this->hasMany(Inassist::class);
     }
 
     public function createdBy()

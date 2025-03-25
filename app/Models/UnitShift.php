@@ -26,4 +26,14 @@ class UnitShift extends Model
     {
         return $this->hasMany(Assignment::class);
     }
+
+    public function inassists(): HasMany
+    {
+        return $this->hasMany(Inassist::class);
+    }
+
+    public function assignmentBreaks(): HasMany
+    {
+        return $this->hasMany(AssignmentBreak::class);
+    }
 }

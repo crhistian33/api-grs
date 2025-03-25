@@ -3,16 +3,20 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\v1\StateCollection;
+use App\Models\State;
 use Illuminate\Http\Request;
 
 class StateController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    protected $states;
+    protected $state;
+    protected array $fields = ['id', 'name', 'shortName', 'type'];
+
     public function index()
     {
-        //
+        $this->states = State::select($this->fields)->get();
+        return new StateCollection($this->states);
     }
 
     /**

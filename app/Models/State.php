@@ -10,8 +10,13 @@ class State extends Model
 {
     use HasFactory;
 
-    public function assists(): HasMany
+    public function inassists(): HasMany
     {
-        return $this->hasMany(Assist::class);
+        return $this->hasMany(Inassist::class);
+    }
+
+    public static function getIdByValue($value)
+    {
+        return self::where('shortName', $value)->value('id');
     }
 }

@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('assists', function (Blueprint $table) {
-            $table->text('comment')->after('pay_mount')->nullable();
+        Schema::table('inassists', function (Blueprint $table) {
+            $table->dropColumn('end_date');
         });
     }
 
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('assists', function (Blueprint $table) {
+        Schema::table('inassists', function (Blueprint $table) {
             //
         });
     }

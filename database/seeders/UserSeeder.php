@@ -13,15 +13,23 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Crear Empresas
-        $company = Company::find(1)->get();
+
 
         $user = User::create([
-            'name' => 'Juan Perez',
-            'email' => 'juan@gmail.com',
+            'name' => 'Juan EAGLE',
+            'email' => 'juaneagle@gmail.com',
             'password' => Hash::make('123456'),
-            'role_id' => 1,
+            'role_id' => 3,
         ]);
 
+        // $user = User::create([
+        //     'name' => 'soporte',
+        //     'email' => 'soporte@gmail.com',
+        //     'password' => Hash::make('123456'),
+        //     'role_id' => 1,
+        // ]);
+
+        $company = Company::find(2)->get();
         $user->companies()->attach($company);
     }
 }

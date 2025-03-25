@@ -11,15 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('breaks', function (Blueprint $table) {
+        Schema::create('assignment_breaks', function (Blueprint $table) {
             $table->id();
-            $table->date('start_date');
-            $table->foreignId('worker_assignment_id')->constrained();
-            $table->foreignId('state_id')->constrained();
-            $table->bigInteger('replace_worker_id')->nullable()->constrained('workers');
-            $table->bigInteger('replace_state_id')->nullable()->constrained('states');
-            $table->boolean('is_pay')->default(false);
-            $table->decimal('pay_mount', 9, 2)->nullable();
+            $table->foreignId('worker_id')->constrained();
+            $table->foreignId('unit_shift_id')->constrained();
+            $table->date('day');
+            $table->boolean('state')->default(true);
             $table->foreignId('created_by')->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();
@@ -32,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('breaks');
+        Schema::dropIfExists('assignment_breaks');
     }
 };

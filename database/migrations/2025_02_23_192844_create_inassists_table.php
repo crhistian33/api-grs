@@ -6,15 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('permissions', function (Blueprint $table) {
+        Schema::create('inassists', function (Blueprint $table) {
             $table->id();
-            $table->text('descripcion');
+            $table->foreignId('worker_assignment_id')->constrained();
+            $table->foreignId('state_id')->constrained();
             $table->date('start_date');
             $table->date('end_date');
-            $table->foreignId('state_id')->constrained();
-            $table->foreignId('worker_assignment_id')->constrained();
+            $table->text('description');
+            $table->foreignId('replacement_id')->constrained();
             $table->foreignId('created_by')->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();
@@ -22,8 +26,11 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('permissions');
+        Schema::dropIfExists('inassists');
     }
 };

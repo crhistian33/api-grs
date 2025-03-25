@@ -8,7 +8,9 @@ use App\Http\Resources\v1\AssignmentCollection;
 use App\Http\Resources\v1\AssignmentResource;
 use App\Models\Assignment;
 use App\Models\Company;
+use App\Models\State;
 use App\Models\UnitShift;
+use App\Models\WorkerAssignment;
 use App\Traits\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\Request;
@@ -27,9 +29,12 @@ class AssignmentController extends Controller
     {
         try {
             $query = Assignment::query()
+                ->where('state', 1)
                 ->with([
                     'unitShift.unit.customer.company',
-                    'workers'
+                    'workers' => function($query) {
+                        $query->wherePivotNull('deleted_at');
+                    }
                 ]);
 
             if ($company) {
@@ -69,6 +74,65 @@ class AssignmentController extends Controller
             return $this->handleException($e);
         }
     }
+
+    // public function getWorkerAssigns(Request $request) {
+    //     $unit_shift_id = $request->input('unit_shift_id');
+    //     $start_date = $request->input('start_date');
+
+    //     $assignment = Assignment::activeToUnitshift($unit_shift_id)
+    //         ->with(['workers', 'unitShift.shift'])
+    //         ->get();
+
+    //     $response = $assignment->map(function ($assign) use($start_date) {
+    //         return [
+    //             'assignment_id' => $assign->id,
+    //             'workers' => $assign->workers->map(function ($worker) use ($assign, $start_date) {
+    //                 $workerAssignment = $worker->workerAssignments
+    //                     ->where('assignment_id', $assign->id)
+    //                     ->first();
+    //                 return [
+    //                     'id' => $worker->id,
+    //                     'worker_assignment' => $workerAssignment->id,
+    //                     'name' => $worker->name,
+    //                     'dni' => $worker->dni,
+    //                     'state' => $this->getStateWorkerAssign(
+    //                         $workerAssignment,
+    //                         $assign->unitShift->shift,
+    //                         $start_date),
+    //                 ];
+    //             }),
+    //         ];
+    //     });
+    //     return response()->json($response);
+    // }
+
+    // private function getStateWorkerAssign($workerAssign, $shift, $start_date) {
+    //     $breaks = $workerAssign->breaks->where('start_date', $start_date);
+    //     if ($breaks->isNotEmpty()) {
+    //         return [
+    //             'id' => State::getIdByValue('X'),
+    //             'shortName' => 'X',
+    //         ];
+    //     }
+
+    //     $permission = $workerAssign->permissions
+    //         ->where('start_date','<=', $start_date)
+    //         ->where('end_date','>=', $start_date)
+    //         ->first();
+
+    //     if (isset($permission)) {
+    //         $state = State::findOrFail($permission->state_id);
+    //         return [
+    //             'id' => $state->id,
+    //             'shortName' => $state->shortName,
+    //         ];
+    //     }
+
+    //     return [
+    //         'id' => State::getIdByValue($shift->shortName),
+    //         'shortName' => $shift->shortName,
+    //     ];
+    // }
 
     // public function getReassignment() {
     //     try {
@@ -136,9 +200,30 @@ class AssignmentController extends Controller
             if($request->has('workers')) {
                 $workerIds = collect($request->workers)->pluck('id')->toArray();
                 $assignment->workers()->sync($workerIds);
+                //$assignment->workers()->wherePivotIn('worker_id', $workerIds)->detach();
             }
             $this->assignment = new AssignmentResource($assignment);
             return $this->successResponse($this->assignment, config('messages.success.update_title'), 'La asignación '.config('messages.success.update_message'));
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
+    public function desactivate(Assignment $assignment)
+    {
+        try {
+            $assignment->update(['state' => false]);
+
+            if ($assignment->workers()->exists()) {
+                $workerIds = $assignment->workers()->pluck('workers.id')->toArray();
+
+                // Usamos el modelo pivote directamente para aplicar soft delete
+                WorkerAssignment::where('assignment_id', $assignment->id)
+                    ->whereIn('worker_id', $workerIds)
+                    ->delete(); // Esto aplicará soft delete si el modelo usa SoftDeletes
+            }
+
+            return $this->successResponse(null, 'Desactivación exitosa', 'La asignación ha sido desactivada y los trabajadores relacionados han sido eliminados.');
         } catch (Exception $e) {
             return $this->handleException($e);
         }

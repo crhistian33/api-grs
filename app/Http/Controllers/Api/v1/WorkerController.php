@@ -10,6 +10,7 @@ use App\Http\Resources\v1\WorkerCollection;
 use App\Http\Resources\v1\WorkerResource;
 use App\Models\Assignment;
 use App\Models\Company;
+use App\Models\UnitShift;
 use App\Models\Worker;
 use App\Traits\ApiResponse;
 use Exception;
@@ -83,23 +84,68 @@ class WorkerController extends Controller
 
     public function getUnassigned(Request $request) {
         try {
-            $query = Worker::type('Titular')->unassigned();
+            $query = Worker::type('Titular');
 
             if($request->has('company_id')) {
                 $companyId = $request->input('company_id');
                 $query->where('company_id', $companyId);
             }
 
-            if ($request->has('assignment_id')) {
-                $assignmentId = $request->input('assignment_id');
-                $query->orWhereHas('assignments', function ($q) use ($assignmentId) {
-                    $q->where('assignments.id', $assignmentId);
+            $query->where(function($q) use ($request) {
+                // Trabajadores que no tienen ninguna asignación
+                $q->whereDoesntHave('assignments');
+
+                // O trabajadores que solo tienen asignaciones eliminadas
+                $q->orWhereHas('assignments', function($subQuery) {
+                    $subQuery->whereNotNull('worker_assignments.deleted_at');
+                })->whereDoesntHave('assignments', function($subQuery) {
+                    $subQuery->whereNull('worker_assignments.deleted_at');
                 });
-            }
+
+                // Si existe assignment_id, añadimos la condición dentro del mismo grupo
+                if ($request->has('assignment_id')) {
+                    $assignmentId = $request->input('assignment_id');
+                    $q->orWhereHas('assignments', function ($subQuery) use ($assignmentId) {
+                        $subQuery->where('assignments.id', $assignmentId)
+                                ->whereNull('worker_assignments.deleted_at');
+                    });
+                }
+            });
 
             $this->workers = $query->select($this->basic_fields)->get();
 
             return new WorkerBasicCollection($this->workers);
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
+    public function getWorkersByUnitShift(UnitShift $unitShift) {
+        $query = Worker::whereHas('assignments', function($q) use($unitShift) {
+            $q->where(['unit_shift_id' => $unitShift->id, 'state' => true])
+                ->whereNull('worker_assignments.deleted_at');
+        })->get();
+
+        $workers = $query->map(function($worker) {
+            return [
+                'id' => $worker->id,
+                'name' => $worker->name,
+            ];
+        });
+
+        return response()->json([
+            'data' => $workers
+        ]);
+    }
+
+    public function getUnitShiftOfWorker(Worker $worker) {
+        try {
+            $unitshiftId = $worker->getActiveUnitShiftId();
+            // ->assignments()
+            //     ->where('state', 1)
+            //     ->pluck('unit_shift_id')
+            //     ->first();
+            return $unitshiftId;
         } catch (Exception $e) {
             return $this->handleException($e);
         }
